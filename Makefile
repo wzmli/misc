@@ -29,6 +29,9 @@ autopipeR = defined
 vaxsim.Rout: vaxsim.R
 	$(pipeR)
 
+vaxfit.Rout: vaxfit.R vaxsim.rds
+	$(pipeR)
+
 
 ######################################################################
 

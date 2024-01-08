@@ -39,3 +39,5 @@ dat <- bind_rows(vaxdat,unvaxdat)
 
 print(dat)
 
+rdsSave(dat)
+
