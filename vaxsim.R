@@ -35,7 +35,12 @@ unvaxdat <-data.frame(month = month
 	, size = c(1000,600)
 )
 
-dat <- bind_rows(vaxdat,unvaxdat)
+dat <- (bind_rows(vaxdat,unvaxdat)
+	%>% mutate(NULL
+		, month = as.factor(month)
+		, lag = as.factor(lag)
+	)
+)
 
 print(dat)
 

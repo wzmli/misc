@@ -3,17 +3,19 @@ library(shellpipes)
 
 vaxdat <- rdsRead()
 
+## Created a vaxonly dataframe in case we need it
+
 vaxonly <- (vaxdat 
-#	%>% filter(vax != "unvax")
-	%>% mutate(NULL
-		, month = as.factor(month)
-		, lag = as.factor(lag)
-	)
+	%>% filter(vax != "unvax")
 )
+
+## 
+
+dat <- vaxonly
 
 mod1 <- glm(prop ~ 0 + month + vax*lag
 	, weights = size
-	, data=vaxonly
+	, data=dat
 )
 
 print(summary(mod1))
@@ -24,13 +26,17 @@ print(mm)
 
 class(mm)
 
-# mod2 <- glm(prop ~ 0 + mm, data=vaxonly, weight = size)
+mod2 <- glm(prop ~ 0 + mm, data=dat, weight = size)
 
-# print(mod2)
 
-print(vaxonly)
+print(mod1)
+print(mod2)
 
-mmvaxonly <- (vaxonly
+## They look the same, so if we construct the mm and use it as input, it should be able to do what we want
+
+quit()
+
+mmvaxdat <- (vaxdat
 	%>% mutate(NULL
 		, month2 = ifelse(month == 2,1,0)
 		, month3 = ifelse(month == 3,1,0)
