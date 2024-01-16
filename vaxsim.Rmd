@@ -1,0 +1,67 @@
+---
+title: "Vaccine simulations"
+output: html_document
+date: "2024-01-16"
+---
+
+```{r setup, include=FALSE, warning=FALSE}
+
+library(tidyverse)
+
+```
+
+## Introduction
+
+We are interested in doing an analysis to look at effectiveness of different vaccines (i.e. monovalent vs bivalent). We have estimates of population by age, when they were vaccinated and a linelist of positive cases with their vaccine history. Before we fit to data, we are going to simulate some fake data to make sure we know what we are doing.
+
+```{r vaxsim, echo=FALSE}
+vax <- c("mono","bi")
+month <- c(2,3)
+lag <- c(1,2)
+
+vaxlag <- (expand.grid(month=month,lag=lag,vax_type=vax)
+   |> filter(month>lag)
+   |> mutate(vax_month=month-lag)
+   |> select(month,vax_month,lag,vax_type)
+)
+
+propdat <- data.frame(prop = c(0.4,0.3,0.2,0.3,0.2,0.1)
+   , size = c(100,50,20,50,20,10)
+)
+
+vaxdat <- bind_cols(vaxlag,propdat)
+
+## creating unvax dataframe
+
+unvaxdat <-data.frame(month = month
+   , vax_month = NA
+   , lag = NA
+   , vax_type = "unvax"
+   , prop = c(0.5, 0.5)
+   , size = c(1000,600)
+)
+
+dat <- (bind_rows(vaxdat,unvaxdat)
+   |> mutate(NULL
+      , month = as.factor(month)
+      , vax_month = as.factor(vax_month)
+      , lag = as.factor(lag)
+   )
+)
+
+print(dat)
+
+```
+
+**month** : month
+
+**vax_month** : month vaccinated
+
+**lag** : lag between month and month vaccinated 
+
+**vax_type** : unvaccinated or type of vaccine last received 
+
+**prop** : proportion of positive of the cohort 
+
+**size** : cohort size
+
