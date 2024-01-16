@@ -393,10 +393,8 @@ print(mod_default)</code></pre>
 ##     data = dat, weights = size)
 ## 
 ## Coefficients:
-##       (Intercept)             month3       vax_typemono               lag2  
-##           -0.8645            -0.4665             0.4665            -0.8662  
-## vax_typemono:lag2  
-##            0.3444  
+##       (Intercept)             month3       vax_typemono               lag2  vax_typemono:lag2  
+##           -0.8645            -0.4665             0.4665            -0.8662             0.3444  
 ## 
 ## Degrees of Freedom: 5 Total (i.e. Null);  1 Residual
 ##   (2 observations deleted due to missingness)
@@ -410,26 +408,33 @@ vaccines.</p>
 <p>We can try to fit using the model matrix by writing out the linear
 combinations. Before we do that, we will see if we can match up the
 vaccine only model via the model matrix method.</p>
-<pre class="r"><code>mm &lt;- model.matrix(mod_default)
-
-vaxonly &lt;- dat |&gt; filter(vax_type != &quot;unvax&quot;)
-
-mod_vaxonly &lt;- glm(prop~0+mm
-    , data = vaxonly
-    , weight = size
-    , family = &quot;binomial&quot;
-)
-
-print(mod_vaxonly)</code></pre>
+<pre><code>##   (Intercept) month3 vax_typemono lag2 vax_typemono:lag2
+## 1           1      0            1    0                 0
+## 2           1      1            1    0                 0
+## 3           1      1            1    1                 1
+## 4           1      0            0    0                 0
+## 5           1      1            0    0                 0
+## 6           1      1            0    1                 0
+## attr(,&quot;assign&quot;)
+## [1] 0 1 2 3 4
+## attr(,&quot;contrasts&quot;)
+## attr(,&quot;contrasts&quot;)$month
+## [1] &quot;contr.treatment&quot;
+## 
+## attr(,&quot;contrasts&quot;)$vax_type
+## [1] &quot;contr.treatment&quot;
+## 
+## attr(,&quot;contrasts&quot;)$lag
+## [1] &quot;contr.treatment&quot;</code></pre>
 <pre><code>## 
 ## Call:  glm(formula = prop ~ 0 + mm, family = &quot;binomial&quot;, data = vaxonly, 
 ##     weights = size)
 ## 
 ## Coefficients:
-##       mm(Intercept)             mmmonth3       mmvax_typemono  
-##             -0.8645              -0.4665               0.4665  
-##              mmlag2  mmvax_typemono:lag2  
-##             -0.8662               0.3444  
+##       mm(Intercept)             mmmonth3       mmvax_typemono               mmlag2  
+##             -0.8645              -0.4665               0.4665              -0.8662  
+## mmvax_typemono:lag2  
+##              0.3444  
 ## 
 ## Degrees of Freedom: 6 Total (i.e. Null);  1 Residual
 ## Null Deviance:       43.26 
@@ -440,24 +445,15 @@ first level of very categorical variable.</p>
 <p>Now that we showed if we can write out the linear combinations and
 construct the corresponding model matrix, we can include the
 unvaccinated class.</p>
-<pre><code>##      month2 month3 lag1 lag2 unvax vaxmono vaxbi monolag1 monolag2 bilag1
-## [1,]      1      0    1    0     0       1     0        1        0      0
-## [2,]      0      1    1    0     0       1     0        1        0      0
-## [3,]      0      1    0    1     0       1     0        0        1      0
-## [4,]      1      0    1    0     0       0     1        0        0      1
-## [5,]      0      1    1    0     0       0     1        0        0      1
-## [6,]      0      1    0    1     0       0     1        0        0      0
-## [7,]      1      0    0    0     1       0     0        0        0      0
-## [8,]      0      1    0    0     1       0     0        0        0      0
-##      bilag2
-## [1,]      0
-## [2,]      0
-## [3,]      0
-## [4,]      0
-## [5,]      0
-## [6,]      1
-## [7,]      0
-## [8,]      0</code></pre>
+<pre><code>##      month2 month3 lag1 lag2 unvax vaxmono vaxbi monolag1 monolag2 bilag1 bilag2
+## [1,]      1      0    1    0     0       1     0        1        0      0      0
+## [2,]      0      1    1    0     0       1     0        1        0      0      0
+## [3,]      0      1    0    1     0       1     0        0        1      0      0
+## [4,]      1      0    1    0     0       0     1        0        0      1      0
+## [5,]      0      1    1    0     0       0     1        0        0      1      0
+## [6,]      0      1    0    1     0       0     1        0        0      0      1
+## [7,]      1      0    0    0     1       0     0        0        0      0      0
+## [8,]      0      1    0    0     1       0     0        0        0      0      0</code></pre>
 <p>Now we can try to fit using this model matrix.</p>
 <pre class="r"><code>mod_full &lt;- glm(prop ~ 0 + mmfull
     , weight = size
@@ -471,12 +467,10 @@ print(mod_full)</code></pre>
 ##     weights = size)
 ## 
 ## Coefficients:
-##   mmfullmonth2    mmfullmonth3      mmfulllag1      mmfulllag2     mmfullunvax  
-##        0.01712        -0.02854        -0.99156        -2.16868              NA  
-##  mmfullvaxmono     mmfullvaxbi  mmfullmonolag1  mmfullmonolag2    mmfullbilag1  
-##        0.81093              NA        -0.36788              NA              NA  
-##   mmfullbilag2  
-##             NA  
+##   mmfullmonth2    mmfullmonth3      mmfulllag1      mmfulllag2     mmfullunvax   mmfullvaxmono  
+##        0.01712        -0.02854        -0.99156        -2.16868              NA         0.81093  
+##    mmfullvaxbi  mmfullmonolag1  mmfullmonolag2    mmfullbilag1    mmfullbilag2  
+##             NA        -0.36788              NA              NA              NA  
 ## 
 ## Degrees of Freedom: 8 Total (i.e. Null);  2 Residual
 ## Null Deviance:       43.26 

@@ -7,6 +7,7 @@ date: "2024-01-16"
 ```{r setup, include=FALSE, warning=FALSE}
 
 library(tidyverse)
+options(width = 100)
 
 ```
 
@@ -68,7 +69,7 @@ print(dat)
 
 ## Fit 
 
-```{r fit, error=TRUE}
+```{r fit}
 
 mod_default <- glm(prop ~ month + vax_type*lag
    , weights = size
@@ -85,9 +86,11 @@ The unvaccinated rows get dropped because there are NAs in the data set so the f
 
 We can try to fit using the model matrix by writing out the linear combinations. Before we do that, we will see if we can match up the vaccine only model via the model matrix method.
 
-```{r mmfit vaxonly}
+```{r mmfit vaxonly,echo=FALSE}
 
 mm <- model.matrix(mod_default)
+
+print(mm)
 
 vaxonly <- dat |> filter(vax_type != "unvax")
 
