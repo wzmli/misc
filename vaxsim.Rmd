@@ -46,6 +46,7 @@ dat <- (bind_rows(vaxdat,unvaxdat)
       , month = as.factor(month)
       , vax_month = as.factor(vax_month)
       , lag = as.factor(lag)
+      , vax_type = as.factor(vax_type)
    )
 )
 
@@ -65,3 +66,80 @@ print(dat)
 
 **size** : cohort size
 
+## Fit 
+
+```{r fit, error=TRUE}
+
+mod_default <- glm(prop ~ month + vax_type*lag
+   , weights = size
+   , data=dat
+   , family = "binomial"
+)
+
+print(mod_default)
+```
+
+The unvaccinated rows get dropped because there are NAs in the data set so the fit reduced down to a model that looks at the two types of vaccines. 
+
+### Fitting using model matrix
+
+We can try to fit using the model matrix by writing out the linear combinations. Before we do that, we will see if we can match up the vaccine only model via the model matrix method.
+
+```{r mmfit vaxonly}
+
+mm <- model.matrix(mod_default)
+
+vaxonly <- dat |> filter(vax_type != "unvax")
+
+mod_vaxonly <- glm(prop~0+mm
+	, data = vaxonly
+	, weight = size
+	, family = "binomial"
+)
+
+print(mod_vaxonly)
+```
+
+Note, the summaries/coef estimates are identical but we need to be careful when doing our effect plots because the intercept takes in the first level of very categorical variable. 
+
+Now that we showed if we can write out the linear combinations and construct the corresponding model matrix, we can include the unvaccinated class.
+
+```{r mm construction,echo=FALSE}
+
+mmfull <- (dat
+   |> mutate(NULL
+      , month2 = ifelse(month == 2,1,0)
+      , month3 = ifelse(month == 3,1,0)
+      , lag1 = ifelse(lag == 1, 1, 0)
+      , lag2 = ifelse(lag == 2, 1, 0)
+      , lag1 = ifelse(is.na(lag1),0,lag1)
+      , lag2 = ifelse(is.na(lag2),0,lag2)
+      , unvax = ifelse(vax_type == "unvax", 1, 0)
+      , vaxmono = ifelse(vax_type == "mono", 1, 0)
+      , vaxbi = ifelse(vax_type == "bi", 1, 0)
+      , monolag1 = ifelse((lag1 == 1) & (vaxmono == 1),1,0)
+      , monolag2 = ifelse((lag2 == 1) & (vaxmono == 1),1,0)
+      , bilag1 = ifelse((lag1 == 1) & (vaxbi == 1),1,0)
+      , bilag2 = ifelse((lag2 == 1) & (vaxbi == 1),1,0)
+   )
+   |> select(-(names(dat)))
+   |> as.matrix()
+)
+
+print(mmfull)
+```
+
+Now we can try to fit using this model matrix.
+
+```{r mmfit full}
+mod_full <- glm(prop ~ 0 + mmfull
+	, weight = size
+	, data = dat
+	, family = "binomial"
+)
+
+print(mod_full)
+
+```
+
+Unclear if this makes sense. 
