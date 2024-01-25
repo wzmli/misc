@@ -6,6 +6,8 @@ dat <- rdsRead()
 
 dat2 <- (dat
     |> mutate(vax_type.lag = interaction(vax_type, lag, drop = TRUE))
+	 |> group_by(vax_type.lag)
+	 |> mutate(wavg = weighted.mean(prop,w=size))
 )
 
 print(dat2)
@@ -38,4 +40,4 @@ cc <- contrast(emm1
 
 print(cc)
 
-
+print(confint(cc))
