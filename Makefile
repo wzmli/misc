@@ -32,10 +32,18 @@ vaxsim.Rout: vaxsim.R
 vaxfit.Rout: vaxfit.R vaxsim.rds
 	$(pipeR)
 
+## vaxfit2.Rout: vaxfit2.R vaxsim.R
+vaxfit2.Rout: vaxfit2.R vaxsim.rds 
+	$(pipeR)
+
 render.Rout: render.R vaxsim.Rmd
 	$(pipeR)
 
 vaxsim.html: render.Rout vaxsim.Rmd
+
+
+vaxsim_BMB.R: vaxsim_BMB.R
+	$(pipeR)
 
 ######################################################################
 

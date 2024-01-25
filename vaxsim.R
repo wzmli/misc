@@ -8,17 +8,20 @@ vax <- c("mono","bi")
 month <- c(2,3)
 lag <- c(1,2)
 
-vaxlag <- (expand.grid(month=month,lag=lag,vax=vax)
+vaxlag <- (expand.grid(month=month,lag=lag,vax_type=vax)
 	%>% filter(month>lag)
-	%>% mutate(month_vax=month-lag)
-	%>% select(month,month_vax,lag,vax)
+	%>% mutate(vax_month=month-lag
+		, vax_month = as.character(vax_month)
+		, lag = as.character(lag)
+	)
+	%>% select(month,vax_month,lag,vax_type)
 )
 
 print(vaxlag)
 
 
-propdat <- data.frame(prop = c(0.4,0.3,0.2,0.3,0.2,0.1)
-	, size = c(100,50,20,50,20,10)
+propdat <- data.frame(prop = c(0.8,0.7,0.6,0.3,0.2,0.1)
+	, size = c(100,500,200,500,200,100)
 )
 
 vaxdat <- bind_cols(vaxlag,propdat)
@@ -28,18 +31,14 @@ print(vaxdat)
 ## creating unvax dataframe
 
 unvaxdat <-data.frame(month = month
-	, month_vax = NA
-	, lag = NA
-	, vax = "unvax"
-	, prop = c(0.5, 0.5)
+	, vax_month = "blank"
+	, lag = "blank"
+	, vax_type = "unvax"
+	, prop = c(0.6, 0.5)
 	, size = c(1000,600)
 )
 
 dat <- (bind_rows(vaxdat,unvaxdat)
-	%>% mutate(NULL
-		, month = as.factor(month)
-		, lag = as.factor(lag)
-	)
 )
 
 print(dat)
