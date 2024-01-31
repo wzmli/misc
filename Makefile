@@ -45,10 +45,10 @@ Sources += $(*.Rmd)
 render.Rout: render.R vaxsim.Rmd
 	$(pipeR)
 
+Ignore += vaxsim.html
 vaxsim.html: render.Rout vaxsim.Rmd
 
-
-vaxsim_BMB.R: vaxsim_BMB.R
+vaxsim_BMB.Rout: vaxsim_BMB.R
 	$(pipeR)
 
 ######################################################################
