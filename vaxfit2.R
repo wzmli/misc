@@ -23,7 +23,7 @@ coef(mod2)
 ## vignette("comparisons", package = "emmeans")
 
 emm1 <- emmeans(mod2, ~ vax_type.lag,type="response")
-plot(emm1, type = "response")
+gg <- plot(emm1, type = "response")
 
 print(confint(emm1))
 
