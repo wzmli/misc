@@ -39,7 +39,7 @@ vaxfit.Rout: vaxfit.R vaxsim.rds
 vaxfit2.Rout: vaxfit2.R vaxsim.rds 
 	$(pipeR)
 
-Sources += $(*.Rmd)
+Sources += $(*.Rmd) vaxsim.Rmd
 
 render.Rout: render.R vaxsim.Rmd
 	$(pipeR)
