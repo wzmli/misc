@@ -13,136 +13,90 @@ options(width = 100)
 
 ## Introduction
 
-We are interested in doing an analysis to look at effectiveness of different vaccines (i.e. monovalent vs bivalent). We have estimates of population by age, when they were vaccinated and a linelist of positive cases with their vaccine history. Before we fit to data, we are going to simulate some fake data to make sure we know what we are doing.
+We are interested in doing an analysis to look at effectiveness of different vaccines (i.e. monovalent vs bivalent) and effects. We have estimates of population by age, when they were vaccinated and a linelist of positive cases with their vaccine history. Before we fit to data, we are going to simulate some fake data to make sure we know what we are doing.
 
-```{r vaxsim, echo=FALSE}
-vax <- c("mono","bi")
-month <- c(2,3)
-lag <- c(1,2)
+## Simulation
 
-vaxlag <- (expand.grid(month=month,lag=lag,vax_type=vax)
-   |> filter(month>lag)
-   |> mutate(vax_month=month-lag)
-   |> select(month,vax_month,lag,vax_type)
-)
+### Basic Sim 
 
-propdat <- data.frame(prop = c(0.4,0.3,0.2,0.3,0.2,0.1)
-   , size = c(100,50,20,50,20,10)
-)
+We are going to start from the basics and build our way up. We first start with a population and we vaccinate a group of them and compare the if the proportion of infections. Let's assume the vaccine has VE = p and the proportion of people infected in the unvaccinated group is x. Then the proportion of vaccined that's infected is x times (1-p). 
 
-vaxdat <- bind_cols(vaxlag,propdat)
+- population = 10,000
+- proportion vaccinated = 50%
+- VE = 80%
+- FOI = 5%
 
-## creating unvax dataframe
+```{r basic_params,echo=FALSE}
+pop <- 1e4
+vprop <- 0.5
+ve <- 0.8
+foi <- 0.05
+```
 
-unvaxdat <-data.frame(month = month
-   , vax_month = NA
-   , lag = NA
-   , vax_type = "unvax"
-   , prop = c(0.5, 0.5)
-   , size = c(1000,600)
-)
 
-dat <- (bind_rows(vaxdat,unvaxdat)
-   |> mutate(NULL
-      , month = as.factor(month)
-      , vax_month = as.factor(vax_month)
-      , lag = as.factor(lag)
-      , vax_type = as.factor(vax_type)
-   )
-)
+```{r basic_sim, echo=FALSE}
+basic_sim <- function(pop,vax_prop,ve,foi){
+	dd <- data.frame(vax = c("unvax","vax")
+		, size = pop*c(1-vax_prop, vax_prop)
+		, prop = c(foi,foi*(1-ve))
+	)
+	return(dd)
+}
 
-print(dat)
+basic_dat <- basic_sim(pop=pop,vax_prop=vprop,ve=ve,foi=foi)
+
+print(basic_dat)
 
 ```
 
-**month** : month
+### Basic fit
 
-**vax_month** : month vaccinated
+We are now going to fit it now. 
 
-**lag** : lag between month and month vaccinated 
+```{r basic_fit}
 
-**vax_type** : unvaccinated or type of vaccine last received 
-
-**prop** : proportion of positive of the cohort 
-
-**size** : cohort size
-
-## Fit 
-
-```{r fit}
-
-mod_default <- glm(prop ~ month + vax_type*lag
-   , weights = size
-   , data=dat
-   , family = "binomial"
+basic_fit <- glm(prop~vax
+	, weights = size
+	, data = basic_dat
+	, family = binomial()
 )
 
-print(mod_default)
+print(summary(basic_fit))
+
 ```
+We are going to use emmeans to get the effects.
 
-The unvaccinated rows get dropped because there are NAs in the data set so the fit reduced down to a model that looks at the two types of vaccines. 
+```{r basic_emmeans}
+library(emmeans)
 
-### Fitting using model matrix
+basic_emm <- emmeans(basic_fit, ~vax, type = "response")
 
-We can try to fit using the model matrix by writing out the linear combinations. Before we do that, we will see if we can match up the vaccine only model via the model matrix method.
+gg <- plot(basic_emm, type = "response")
 
-```{r mmfit vaxonly,echo=FALSE}
-
-mm <- model.matrix(mod_default)
-
-print(mm)
-
-vaxonly <- dat |> filter(vax_type != "unvax")
-
-mod_vaxonly <- glm(prop~0+mm
-	, data = vaxonly
-	, weight = size
-	, family = "binomial"
-)
-
-print(mod_vaxonly)
-```
-
-Note, the summaries/coef estimates are identical but we need to be careful when doing our effect plots because the intercept takes in the first level of very categorical variable. 
-
-Now that we showed if we can write out the linear combinations and construct the corresponding model matrix, we can include the unvaccinated class.
-
-```{r mm construction,echo=FALSE}
-
-mmfull <- (dat
-   |> mutate(NULL
-      , month2 = ifelse(month == 2,1,0)
-      , month3 = ifelse(month == 3,1,0)
-      , lag1 = ifelse(lag == 1, 1, 0)
-      , lag2 = ifelse(lag == 2, 1, 0)
-      , lag1 = ifelse(is.na(lag1),0,lag1)
-      , lag2 = ifelse(is.na(lag2),0,lag2)
-      , unvax = ifelse(vax_type == "unvax", 1, 0)
-      , vaxmono = ifelse(vax_type == "mono", 1, 0)
-      , vaxbi = ifelse(vax_type == "bi", 1, 0)
-      , monolag1 = ifelse((lag1 == 1) & (vaxmono == 1),1,0)
-      , monolag2 = ifelse((lag2 == 1) & (vaxmono == 1),1,0)
-      , bilag1 = ifelse((lag1 == 1) & (vaxbi == 1),1,0)
-      , bilag2 = ifelse((lag2 == 1) & (vaxbi == 1),1,0)
-   )
-   |> select(-(names(dat)))
-   |> as.matrix()
-)
-
-print(mmfull)
-```
-
-Now we can try to fit using this model matrix.
-
-```{r mmfit full}
-mod_full <- glm(prop ~ 0 + mmfull
-	, weight = size
-	, data = dat
-	, family = "binomial"
-)
-
-print(mod_full)
+print(gg)
 
 ```
 
-Unclear if this makes sense. 
+Now we are going to try to recover VE using contrast. 
+
+```{r basic_contrast}
+
+basic_con <- contrast(basic_emm)
+
+print(basic_con)
+
+## Setting up the contrast
+
+basic_con2 <- contrast(basic_emm
+	, list(vax_vs_unvax = c(-1,1)
+	)
+)
+
+print(basic_con2)
+
+print(plot(basic_con2))
+
+
+
+
+```
