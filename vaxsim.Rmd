@@ -95,8 +95,13 @@ basic_con2 <- contrast(basic_emm
 print(basic_con2)
 
 print(plot(basic_con2))
-
-
-
-
 ```
+
+Recovering 0.8:
+
+```{r calc_eff}
+cc <- coef(basic_fit)
+1- exp(cc[2])
+1 - plogis(cc[1]+cc[2])/plogis(cc[1])
+```
+
