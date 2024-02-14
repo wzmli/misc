@@ -35,10 +35,17 @@ simfuns.Rout: simfuns.R
 basic_sim.Rout: basic_sim.R simfuns.rda params.rda
 	$(pipeR)
 
-basic_vaxfit.Rout: basic_vaxfit.R basic_sim.rds params.rda
+basic_fit.Rout: basic_fit.R basic_sim.rds params.rda
 	$(pipeR)
 
-doublevax.Rout: 
+doublevax.Rout: doublevax_params.R
+	$(pipeR)
+
+doublevax_sim.Rout: basic_sim.R doublevax_params.rda simfuns.rda
+	$(pipeR)
+
+doublevax_fit.Rout: doublevax_fit.R doublevax_sim.rds params.rda
+	$(pipeR)
 
 
 Sources += $(*.Rmd) vaxsim.Rmd

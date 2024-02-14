@@ -3,10 +3,9 @@ library(shellpipes)
 
 loadEnvironments()
 
-basic_dat <- basic_sim(pop=pop,vax_prop=vprop,ve=ve,foi=foi)
+dat <- vec_sims(pop=pop,vax_vec=vax,vp_vec=vprop,ve_vec=ve,foi=foi)
 
-print(basic_dat)
+print(dat)
 
-
-rdsSave(basic_dat)
+rdsSave(dat)
 
