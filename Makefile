@@ -26,10 +26,13 @@ autopipeR = defined
 
 ######################################################################
 
-vaxsim.Rout: vaxsim.R
+params.Rout: params.R
 	$(pipeR)
 
-vaxfit.Rout: vaxfit.R vaxsim.rds
+vaxsim.Rout: vaxsim.R params.rda
+	$(pipeR)
+
+vaxfit.Rout: vaxfit.R vaxsim.rds params.rda
 	$(pipeR)
 
 ## vaxfit2.Rout: vaxfit2.R vaxsim.R
