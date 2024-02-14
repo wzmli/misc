@@ -29,15 +29,17 @@ autopipeR = defined
 params.Rout: params.R
 	$(pipeR)
 
-vaxsim.Rout: vaxsim.R params.rda
+simfuns.Rout: simfuns.R
 	$(pipeR)
 
-vaxfit.Rout: vaxfit.R vaxsim.rds params.rda
+basic_sim.Rout: basic_sim.R simfuns.rda params.rda
 	$(pipeR)
 
-## vaxfit2.Rout: vaxfit2.R vaxsim.R
-vaxfit2.Rout: vaxfit2.R vaxsim.rds 
+basic_vaxfit.Rout: basic_vaxfit.R basic_sim.rds params.rda
 	$(pipeR)
+
+doublevax.Rout: 
+
 
 Sources += $(*.Rmd) vaxsim.Rmd
 
