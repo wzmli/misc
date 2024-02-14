@@ -8,7 +8,7 @@ vim_session:
 
 ######################################################################
 
-Sources += $(wildcard *.R) README.md
+Sources += $(wildcard *.R *.md *.Rmd)
 
 ######################################################################
 
@@ -47,9 +47,6 @@ doublevax_sim.Rout: basic_sim.R doublevax_params.rda simfuns.rda
 doublevax_fit.Rout: doublevax_fit.R doublevax_sim.rds params.rda
 	$(pipeR)
 
-
-Sources += $(*.Rmd) vaxsim.Rmd
-
 render.Rout: render.R vaxsim.Rmd
 	$(pipeR)
 
@@ -64,9 +61,6 @@ vaxsim_BMB.Rout: vaxsim_BMB.R
 ### Makestuff
 
 Sources += Makefile
-
-## Sources += content.mk
-## include content.mk
 
 Ignore += makestuff
 msrepo = https://github.com/dushoff

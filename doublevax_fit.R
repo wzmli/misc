@@ -26,8 +26,11 @@ basic_con <- contrast(basic_emm)
 print(basic_con)
 
 basic_con2 <- contrast(basic_emm
-	, list(vax_vs_unvax = c(0,-1,1)
+	, list(vaxComp = c(0,-1,1)
+		, testComp = c(0, 1, -1)
+		, moreStuff = c(1, -1/2, -1/2)
 	)
+	, ratios=FALSE
 )
 
 print(basic_con2)
